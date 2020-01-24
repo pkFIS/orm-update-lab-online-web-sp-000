@@ -19,7 +19,7 @@ class Student
         id INTEGER PRIMARY KEY,
         name TEXT,
         grade INTEGER
-      )
+        )
       SQL
     DB[:conn].execute(sql)
   end
@@ -40,13 +40,14 @@ class Student
         VALUES(?, ?)
         SQL
       DB[:conn].execute(sql, self.name, self.grade)
-
       @id = DB[:conn].execute("SELECT last_insert_rowid() FROM students")[0][0]
     end
   end
 
   def self.create(name, grade)
-    student = Student.new(name, grade).tap{ |x| x.save }
+    student = Student.new
+    student.save
+    student
   end
 
   def self.new_from_db(row)
@@ -59,9 +60,8 @@ class Student
       FROM students
       WHERE students.name = ?
       SQL
-
-    DB[:conn].execute(sql, name).map do |student|
-      Student.new_from_db(student)
+    DB[:conn].execute(sql, name).map do |row|
+      self.new_from_db(row)
     end.first
   end
 
@@ -71,7 +71,6 @@ class Student
       SET name = ?, grade = ?
       WHERE students.id = ?
       SQL
-
     DB[:conn].execute(sql, self.name, self.grade, self.id)
   end
 
